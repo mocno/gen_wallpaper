@@ -1,6 +1,6 @@
 # gen_wallpaper
 
-A ideia desse projeto é gerar de forma simples e rápida planos de fundos, mas claro sem perder a beleza e o estilo de que seu plano de fundo prescisa :P
+A ideia desse projeto é gerar de forma simples e rápida planos de fundos, mas sem perder a beleza e o estilo que seu plano de fundo prescisa :P
 
 As imagens abaixo são exemplos quaisquer do programa:
 
