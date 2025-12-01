@@ -1,9 +1,9 @@
-use std::{f32::consts::PI, usize};
+use std::{f32::consts::PI, path::Path, usize};
 
-use image::Rgb;
+use image::{ImageResult, Rgb};
 use rand::Rng;
 
-use crate::types::RandomDotsWallpaper;
+use crate::types::{RandomDotsWallpaper, Wallpaper, XYZWallpaper};
 
 const BACKGROUND: Rgb<u8> = Rgb([20, 20, 20]);
 
@@ -101,7 +101,7 @@ fn rn_f1(p: f32, a: f32, b: f32, n1: usize, n2: usize) -> f32 {
     }
 }
 
-fn color_map(p: f32, a: f32, b: f32) -> Rgb<u8> {
+pub fn color_map(p: f32, a: f32, b: f32) -> Rgb<u8> {
     let (a, b) = ((a + 1.0) / 2.0, (b + 1.0) / 2.0);
     let value = COLOR_MAPS[(p * COLOR_MAPS.len() as f32) as usize](a, b);
     let p = (p - (p * COLOR_MAPS.len() as f32).floor() / COLOR_MAPS.len() as f32)
@@ -111,23 +111,54 @@ fn color_map(p: f32, a: f32, b: f32) -> Rgb<u8> {
     linear_color_map(value, color1, color2)
 }
 
-fn rn_f2(p1: f32, p2: f32, x: f32, y: f32) -> (f32, f32) {
-    let (n1, n2) = (5, 20);
-    (rn_f1(p1, x, y, n1, n2), rn_f1(p2, y, x, n1, n2))
-}
-
-pub fn generator(resolution: (u32, u32)) -> RandomDotsWallpaper {
+pub fn dots_generator(resolution: (u32, u32)) -> RandomDotsWallpaper {
     let mut rng = rand::rng();
     let p_color_map: f32 = rng.random();
     let p1: f32 = rng.random();
     let p2: f32 = rng.random();
 
+    let (n1, n2) = (5, 20);
+
     let mut wp = RandomDotsWallpaper::new(resolution, BACKGROUND);
     wp.add_normal_colored_dots(
         &mut rng,
-        |x, y| (rn_f2(p1, p2, x, y), color_map(p_color_map, x, y)),
+        |x, y| {
+            (
+                (rn_f1(p1, x, y, n1, n2), rn_f1(p2, y, x, n1, n2)),
+                color_map(p_color_map, x, y),
+            )
+        },
         resolution.0 * resolution.1 / 4,
     );
 
     wp
+}
+
+pub fn xyz_generator(resolution: (u32, u32)) -> XYZWallpaper {
+    let mut rng = rand::rng();
+
+    // Create two colors without possible to be green :P
+    let color1: [f32; 3] = [rng.random(), 0.0, rng.random()];
+    let color2: [f32; 3] = [rng.random(), 0.0, rng.random()];
+    let p: f32 = rng.random();
+    let (n1, n2) = (5, 20);
+
+    let mut wp = XYZWallpaper::new(resolution);
+    wp.paint(|x, y| linear_color_map(rn_f1(p, x, y, n1, n2), color1, color2));
+
+    wp
+}
+
+pub fn save_wallpaper_random<Q>(resolution: (u32, u32), filepath: Q) -> ImageResult<()>
+where
+    Q: AsRef<Path>,
+{
+    let mut rng = rand::rng();
+    if rng.random_bool(0.5) {
+        let wp = dots_generator(resolution);
+        wp.save(filepath)
+    } else {
+        let wp = xyz_generator(resolution);
+        wp.save(filepath)
+    }
 }

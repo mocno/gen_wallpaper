@@ -27,6 +27,10 @@ impl Resolution {
     }
 }
 
+pub trait Save {
+    fn save<Q: AsRef<Path>>(self, path: Q) -> ImageResult<()>;
+}
+
 pub struct RandomDotsWallpaper {
     image: RgbImage,
 }
@@ -72,8 +76,39 @@ impl RandomDotsWallpaper {
             self.add_dot(dot, color);
         }
     }
+}
+impl Save for RandomDotsWallpaper {
+    fn save<Q: AsRef<Path>>(self, path: Q) -> ImageResult<()> {
+        self.image.save(path)
+    }
+}
 
-    pub fn save<Q: AsRef<Path>>(self, path: Q) -> ImageResult<()> {
+pub struct XYZWallpaper {
+    image: RgbImage,
+}
+
+impl XYZWallpaper {
+    pub fn new(resolution: (u32, u32)) -> Self {
+        XYZWallpaper {
+            image: RgbImage::new(resolution.0, resolution.1),
+        }
+    }
+
+    pub fn paint(&mut self, dot_color: impl Fn(f32, f32) -> Rgb<u8>) {
+        for i in 0..self.image.width() {
+            for j in 0..self.image.height() {
+                let x = 2.0 * (i as f32 / self.image.width() as f32) - 1.0;
+                let y = 2.0 * (j as f32 / self.image.height() as f32) - 1.0;
+                let color = dot_color(x, y);
+
+                self.image.put_pixel(i, j, color);
+            }
+        }
+    }
+}
+
+impl Save for XYZWallpaper {
+    fn save<Q: AsRef<Path>>(self, path: Q) -> ImageResult<()> {
         self.image.save(path)
     }
 }
