@@ -1,9 +1,31 @@
 use std::path::Path;
 
+use clap::ValueEnum;
 use image::{ImageResult, Rgb, RgbImage};
 use imageproc::{drawing::draw_filled_rect_mut, rect::Rect};
 use rand::Rng;
 use rand_distr::{Distribution, Normal};
+
+#[derive(Debug, ValueEnum, Clone)]
+pub enum Resolution {
+    HD,
+    FullHD,
+    _4k,
+}
+
+pub const RESOLUTION_HD: (u32, u32) = (1280, 720);
+pub const RESOLUTION_FULLHD: (u32, u32) = (1920, 1080);
+pub const RESOLUTION_4K: (u32, u32) = (4096, 2160);
+
+impl Resolution {
+    pub fn size(self) -> (u32, u32) {
+        match self {
+            Self::HD => RESOLUTION_HD,
+            Self::FullHD => RESOLUTION_FULLHD,
+            Self::_4k => RESOLUTION_4K,
+        }
+    }
+}
 
 pub struct RandomDotsWallpaper {
     image: RgbImage,
@@ -38,7 +60,7 @@ impl RandomDotsWallpaper {
         &mut self,
         mut rng: &mut R,
         colored_dot: impl Fn(f32, f32) -> ((f32, f32), Rgb<u8>),
-        num: i32,
+        num: u32,
     ) where
         R: Rng + Sized,
     {
