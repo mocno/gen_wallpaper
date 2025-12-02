@@ -2,6 +2,7 @@ mod generator;
 mod types;
 
 use clap::Parser;
+use rand::{rngs::SmallRng, Rng, RngCore, SeedableRng};
 
 use crate::types::{Resolution, Save};
 
@@ -25,6 +26,10 @@ enum Commands {
         /// Resolução do papel de parede
         #[arg(short, long, default_value = "full-hd")]
         resolution: Resolution,
+
+        /// Semente para gerar o wallpaper
+        #[arg(short, long)]
+        seed: Option<u64>,
     },
 
     /// Gera um wallpaper baseado numa função que mapeia cada pixel da tela a uma cor
@@ -35,6 +40,10 @@ enum Commands {
         /// Resolução do papel de parede
         #[arg(short, long, default_value = "full-hd")]
         resolution: Resolution,
+
+        /// Semente para gerar o wallpaper
+        #[arg(short, long)]
+        seed: Option<u64>,
     },
 
     /// Gera um wallpaper de qualquer tipo
@@ -45,7 +54,16 @@ enum Commands {
         /// Resolução do papel de parede
         #[arg(short, long, default_value = "full-hd")]
         resolution: Resolution,
+
+        /// Semente para gerar o wallpaper - também é usado para gerar o tipo do wallpaper
+        #[arg(short, long)]
+        seed: Option<u64>,
     },
+}
+
+fn generate_seed() -> u64 {
+    let mut rng = rand::rng();
+    return rng.next_u64();
 }
 
 fn main() {
@@ -55,25 +73,49 @@ fn main() {
         Commands::Dots {
             filepath,
             resolution,
+            seed,
         } => {
             let resolution = resolution.size();
-            let wp = generator::dots_generator(resolution);
+            let seed = seed.unwrap_or_else(generate_seed);
+            let mut rng = SmallRng::seed_from_u64(seed);
+
+            println!("{seed}");
+
+            let wp = generator::dots_generator(&mut rng, resolution);
             wp.save(filepath).unwrap();
         }
         Commands::Xyz {
             filepath,
             resolution,
+            seed,
         } => {
             let resolution = resolution.size();
-            let wp = generator::xyz_generator(resolution);
+            let seed = seed.unwrap_or_else(generate_seed);
+            let mut rng = SmallRng::seed_from_u64(seed);
+
+            println!("{seed}");
+
+            let wp = generator::xyz_generator(&mut rng, resolution);
             wp.save(filepath).unwrap();
         }
         Commands::Random {
             filepath,
             resolution,
+            seed,
         } => {
             let resolution = resolution.size();
-            generator::save_wallpaper_random(resolution, filepath).unwrap();
+            let seed = seed.unwrap_or_else(generate_seed);
+            let mut rng = SmallRng::seed_from_u64(seed);
+
+            println!("{seed}");
+
+            if rng.random_bool(0.5) {
+                let wp = generator::dots_generator(&mut rng, resolution);
+                wp.save(filepath).unwrap();
+            } else {
+                let wp = generator::xyz_generator(&mut rng, resolution);
+                wp.save(filepath).unwrap();
+            }
         }
     }
 }
