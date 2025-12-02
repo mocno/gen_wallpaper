@@ -1,27 +1,29 @@
-# gen_wallpaper
+# gen-wallpaper
 
 A ideia desse projeto é gerar de forma simples e rápida planos de fundos, mas sem perder a beleza e o estilo que seu plano de fundo prescisa :P
 
 Algunes exemplos de imagens geradas pelo programa são
 
-**Imagem em 4k do tipo `dots` usando a semente "335811871"**
-![Wallpaper do tipo dots em 4k - gerado usando a semente 335811871](./imgs/gen-wallpaper-dots-s=335811871-r=4k.png)
-**Imagem em 4k do tipo `xyz` usando a semente "496775472"**
-![Wallpaper do tipo xyz em 4k - gerado usando a semente 496775472](./imgs/gen-wallpaper-xyz-s=496775472-r=4k.png)
-**Imagem em full-HD do tipo `dots` usando a semente "496775472"**
-![Wallpaper do tipo dots em Full HD - gerado usando a semente 496775472](./imgs/gen-wallpaper-dots-s=496775472-r=full-hd.png)
-**Imagem em full-HD do tipo `xyz` usando a semente "85287399"**
-![Wallpaper do tipo xyz em Full HD - gerado usando a semente 85287399](./imgs/gen-wallpaper-xyz-s=85287399-r=full-hd.png)
+Imagem em 4k do tipo `dots` usando a semente "335811871":  
+<img alt="Wallpaper do tipo dots em 4k - gerado usando a semente 335811871" src="./imgs/gen-wallpaper-dots-s=335811871-r=4k.png" height="400">  
+Imagem em 4k do tipo `xyz` usando a semente "496775472":  
+<img alt="Wallpaper do tipo xyz em 4k - gerado usando a semente 496775472" src="./imgs/gen-wallpaper-xyz-s=496775472-r=4k.png" height="400">  
+Imagem em full-HD do tipo `dots` usando a semente "496775472":  
+<img alt="Wallpaper do tipo dots em Full HD - gerado usando a semente 496775472" src="./imgs/gen-wallpaper-dots-s=496775472-r=full-hd.png" height="400">  
+Imagem em full-HD do tipo `xyz` usando a semente "85287399":  
+<img alt="Wallpaper do tipo xyz em Full HD - gerado usando a semente 85287399" src="./imgs/gen-wallpaper-xyz-s=85287399-r=full-hd.png" height="400">  
 
 Há ainda mais exmplos no diretório [imgs](./imgs/).
 
-## Como usar:
+## Como usar
 
 O comando para gerar uma imagem é bastante simples, mas antes é importante saber que há tipos de papais de parede para serem gerados. Assim, se deseja gerar uma imagem em full HD do tipo `random`, basta executar:
 ```sh
 gen-wallpaper random meu-wallpaper.png -r full-hd
 ```
-O comando gerará a imagem e devolvera, na saída padrão, a semente da imagem. A semente pode ser útil para falar para um amigo: "o *fundo* 137 do tipo `xyz` é bonito demais". Na falta de amigos, outra ultilidade das sementes é aumentar a resolução de uma imagem. No caso anterior, se desejasse colocar a mesma imagem em 4k bastaria rodar o comando novamente, porém agora com a semente entregue pelo ultimo programa:
+O comando gerará a imagem e devolvera, na saída padrão, a semente da imagem. A semente pode ser útil para falar para um amigo: "o *fundo* 137 do tipo `xyz` é bonito demais". Na falta de amigos, outra utilidade das sementes é aumentar a resolução de uma imagem.
+
+No caso anterior, se desejasse colocar a mesma imagem em 4k bastaria rodar o comando novamente, porém agora com a semente entregue pelo ultimo programa:
 ```sh
 gen-wallpaper random meu-wallpaper.png -r 4k -s <SEED>
 ```
