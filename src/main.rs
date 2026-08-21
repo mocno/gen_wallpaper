@@ -1,8 +1,11 @@
 mod generator;
+mod pallete_generator;
 mod types;
 
+use std::process::ExitCode;
+
 use clap::Parser;
-use rand::{rngs::SmallRng, Rng, RngCore, SeedableRng};
+use rand::{rngs::SmallRng, Rng, RngExt, SeedableRng};
 
 use crate::types::{Resolution, Save};
 
@@ -63,13 +66,13 @@ enum Commands {
 
 fn generate_seed() -> u64 {
     let mut rng = rand::rng();
-    return rng.next_u64();
+    rng.next_u64()
 }
 
-fn main() {
+fn main() -> ExitCode {
     let args = Cli::parse();
 
-    match args.command {
+    let result = match args.command {
         Commands::Dots {
             filepath,
             resolution,
@@ -82,7 +85,7 @@ fn main() {
             println!("{seed}");
 
             let wp = generator::dots_generator(&mut rng, resolution);
-            wp.save(filepath).unwrap();
+            wp.save(filepath)
         }
         Commands::Xyz {
             filepath,
@@ -96,7 +99,7 @@ fn main() {
             println!("{seed}");
 
             let wp = generator::xyz_generator(&mut rng, resolution);
-            wp.save(filepath).unwrap();
+            wp.save(filepath)
         }
         Commands::Random {
             filepath,
@@ -111,11 +114,22 @@ fn main() {
 
             if rng.random_bool(0.5) {
                 let wp = generator::dots_generator(&mut rng, resolution);
-                wp.save(filepath).unwrap();
+                wp.save(filepath)
             } else {
                 let wp = generator::xyz_generator(&mut rng, resolution);
-                wp.save(filepath).unwrap();
+                wp.save(filepath)
             }
         }
+    };
+
+    if let Err(error) = result {
+        eprintln!("Erro ao gerar a imagem: {:}", error.to_string());
+        return match error {
+            image::ImageError::IoError(_) => ExitCode::from(2),
+            image::ImageError::Unsupported(_) => ExitCode::from(3),
+            _ => ExitCode::from(1),
+        };
     }
+
+    ExitCode::SUCCESS
 }
