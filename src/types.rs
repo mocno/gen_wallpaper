@@ -37,7 +37,7 @@ pub struct RandomDotsWallpaper {
 
 impl RandomDotsWallpaper {
     pub fn new(resolution: (u32, u32), background: Rgb<u8>) -> Self {
-        let mut wp = RandomDotsWallpaper {
+        let mut wp = Self {
             image: RgbImage::new(resolution.0, resolution.1),
         };
         draw_filled_rect_mut(
@@ -89,7 +89,7 @@ pub struct XYZWallpaper {
 
 impl XYZWallpaper {
     pub fn new(resolution: (u32, u32)) -> Self {
-        XYZWallpaper {
+        Self {
             image: RgbImage::new(resolution.0, resolution.1),
         }
     }
@@ -108,6 +108,55 @@ impl XYZWallpaper {
 }
 
 impl Save for XYZWallpaper {
+    fn save<Q: AsRef<Path>>(self, path: Q) -> ImageResult<()> {
+        self.image.save(path)
+    }
+}
+
+pub struct TilesWallpaper {
+    image: RgbImage,
+    size: u32,
+}
+
+impl TilesWallpaper {
+    pub fn new(resolution: (u32, u32), size: u32) -> Self {
+        Self {
+            image: RgbImage::new(resolution.0, resolution.1),
+            size,
+        }
+    }
+
+    pub fn paint(&mut self, dot_color: impl Fn(f32, f32) -> Rgb<u8>) {
+        let (width, height) = (
+            self.image.width().div_ceil(self.size),
+            self.image.height().div_ceil(self.size),
+        );
+
+        let inicial_position = (
+            (width * self.size - self.image.width()) / 2,
+            (height * self.size - self.image.height()) / 2,
+        );
+
+        for i in 0..=width {
+            for j in 0..=height {
+                let (x, y) = (
+                    2.0 * i as f32 / width as f32 - 1.0,
+                    2.0 * j as f32 / height as f32 - 1.0,
+                );
+                let color = dot_color(x, y);
+                let rect = Rect::at(
+                    (i * self.size - inicial_position.0) as i32,
+                    (j * self.size - inicial_position.1) as i32,
+                )
+                .of_size(self.size, self.size);
+
+                draw_filled_rect_mut(&mut self.image, rect, color);
+            }
+        }
+    }
+}
+
+impl Save for TilesWallpaper {
     fn save<Q: AsRef<Path>>(self, path: Q) -> ImageResult<()> {
         self.image.save(path)
     }

@@ -1,5 +1,5 @@
 mod generator;
-mod pallete_generator;
+mod palette_generator;
 mod types;
 
 use std::process::ExitCode;
@@ -37,6 +37,20 @@ enum Commands {
 
     /// Gera um wallpaper baseado numa função que mapeia cada pixel da tela a uma cor
     Xyz {
+        /// Nome da imagem a ser criada
+        filepath: String,
+
+        /// Resolução do papel de parede
+        #[arg(short, long, default_value = "full-hd")]
+        resolution: Resolution,
+
+        /// Semente para gerar o wallpaper
+        #[arg(short, long)]
+        seed: Option<u64>,
+    },
+
+    /// Gera um wallpaper baseado em uma grade
+    Tiles {
         /// Nome da imagem a ser criada
         filepath: String,
 
@@ -101,6 +115,20 @@ fn main() -> ExitCode {
             let wp = generator::xyz_generator(&mut rng, resolution);
             wp.save(filepath)
         }
+        Commands::Tiles {
+            filepath,
+            resolution,
+            seed,
+        } => {
+            let resolution = resolution.size();
+            let seed = seed.unwrap_or_else(generate_seed);
+            let mut rng = SmallRng::seed_from_u64(seed);
+
+            println!("{seed}");
+
+            let wp = generator::tiles_generator(&mut rng, resolution);
+            wp.save(filepath)
+        }
         Commands::Random {
             filepath,
             resolution,
@@ -112,18 +140,26 @@ fn main() -> ExitCode {
 
             println!("{seed}");
 
-            if rng.random_bool(0.5) {
-                let wp = generator::dots_generator(&mut rng, resolution);
-                wp.save(filepath)
-            } else {
-                let wp = generator::xyz_generator(&mut rng, resolution);
-                wp.save(filepath)
+            match rng.random_range(..=2u8) {
+                0 => {
+                    let wp = generator::dots_generator(&mut rng, resolution);
+                    wp.save(filepath)
+                }
+                1 => {
+                    let wp = generator::xyz_generator(&mut rng, resolution);
+                    wp.save(filepath)
+                }
+                2 => {
+                    let wp = generator::tiles_generator(&mut rng, resolution);
+                    wp.save(filepath)
+                }
+                _ => unreachable!(),
             }
         }
     };
 
     if let Err(error) = result {
-        eprintln!("Erro ao gerar a imagem: {:}", error.to_string());
+        eprintln!("Erro ao gerar a imagem: {}", error);
         return match error {
             image::ImageError::IoError(_) => ExitCode::from(2),
             image::ImageError::Unsupported(_) => ExitCode::from(3),
