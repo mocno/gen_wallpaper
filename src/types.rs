@@ -1,10 +1,13 @@
-use std::path::Path;
-
+use crate::{
+    generator::{create_colormap, random_function, BACKGROUND},
+    palette_generator::generate_random_style_colors,
+};
 use clap::ValueEnum;
 use image::{ImageResult, Rgb, RgbImage};
 use imageproc::{drawing::draw_filled_rect_mut, rect::Rect};
-use rand::Rng;
+use rand::{Rng, RngExt};
 use rand_distr::{Distribution, Normal};
+use std::path::Path;
 
 #[derive(Debug, ValueEnum, Clone)]
 pub enum Resolution {
@@ -13,16 +16,12 @@ pub enum Resolution {
     _4k,
 }
 
-pub const RESOLUTION_HD: (u32, u32) = (1280, 720);
-pub const RESOLUTION_FULLHD: (u32, u32) = (1920, 1080);
-pub const RESOLUTION_4K: (u32, u32) = (4096, 2160);
-
 impl Resolution {
     pub fn size(self) -> (u32, u32) {
         match self {
-            Self::HD => RESOLUTION_HD,
-            Self::FullHD => RESOLUTION_FULLHD,
-            Self::_4k => RESOLUTION_4K,
+            Self::HD => (1280, 720),
+            Self::FullHD => (1920, 1080),
+            Self::_4k => (4096, 2160),
         }
     }
 }
@@ -36,7 +35,8 @@ pub struct RandomDotsWallpaper {
 }
 
 impl RandomDotsWallpaper {
-    pub fn new(resolution: (u32, u32), background: Rgb<u8>) -> Self {
+    pub fn new(resolution: Resolution, background: Rgb<u8>) -> Self {
+        let resolution = resolution.size();
         let mut wp = Self {
             image: RgbImage::new(resolution.0, resolution.1),
         };
@@ -76,6 +76,39 @@ impl RandomDotsWallpaper {
             self.add_dot(dot, color);
         }
     }
+
+    pub fn generator<R>(rng: &mut R, resolution: Resolution) -> Self
+    where
+        R: Rng + Sized + Clone,
+    {
+        let (n1, n2, n1_color, n2_color, num_colors_range, coeff_colored_pixels) =
+            (5, 20, 3, 3, 2..6, 0.4);
+
+        let resolution_sizes = resolution.clone().size();
+        let num_colored_dots =
+            ((resolution_sizes.0 * resolution_sizes.1) as f32 * coeff_colored_pixels) as u32;
+        let num_colors = rng.random_range(num_colors_range.clone());
+        let colors = generate_random_style_colors(rng, num_colors);
+
+        let mut wp = Self::new(resolution, BACKGROUND);
+        wp.add_normal_colored_dots(
+            &mut rng.clone(),
+            |x, y| {
+                let mut rng_seeded = rng.clone();
+
+                let (px, py) = (
+                    random_function(&mut rng_seeded, x, y, n1, n2),
+                    random_function(&mut rng_seeded, x, y, n1, n2),
+                );
+                let color = create_colormap(&mut rng_seeded, x, y, n1_color, n2_color, &colors);
+
+                ((px, py), color)
+            },
+            num_colored_dots,
+        );
+
+        wp
+    }
 }
 impl Save for RandomDotsWallpaper {
     fn save<Q: AsRef<Path>>(self, path: Q) -> ImageResult<()> {
@@ -88,7 +121,8 @@ pub struct XYZWallpaper {
 }
 
 impl XYZWallpaper {
-    pub fn new(resolution: (u32, u32)) -> Self {
+    pub fn new(resolution: Resolution) -> Self {
+        let resolution = resolution.size();
         Self {
             image: RgbImage::new(resolution.0, resolution.1),
         }
@@ -105,6 +139,20 @@ impl XYZWallpaper {
             }
         }
     }
+
+    pub fn generator<R>(rng: &mut R, resolution: Resolution) -> Self
+    where
+        R: Rng + Sized + Clone,
+    {
+        let (n1, n2, num_colors_range) = (15, 10, 3..8);
+
+        let num_colors = rng.random_range(num_colors_range);
+        let colors = generate_random_style_colors(rng, num_colors);
+
+        let mut wp = Self::new(resolution);
+        wp.paint(|x, y| create_colormap(&mut rng.clone(), x, y, n1, n2, &colors));
+        wp
+    }
 }
 
 impl Save for XYZWallpaper {
@@ -119,7 +167,8 @@ pub struct TilesWallpaper {
 }
 
 impl TilesWallpaper {
-    pub fn new(resolution: (u32, u32), size: u32) -> Self {
+    pub fn new(resolution: Resolution, size: u32) -> Self {
+        let resolution = resolution.size();
         Self {
             image: RgbImage::new(resolution.0, resolution.1),
             size,
@@ -153,6 +202,22 @@ impl TilesWallpaper {
                 draw_filled_rect_mut(&mut self.image, rect, color);
             }
         }
+    }
+
+    pub fn generator<R>(rng: &mut R, resolution: Resolution) -> Self
+    where
+        R: Rng + Sized + Clone,
+    {
+        let (n1, n2, num_colors_range, size_range, length_range) = (5, 10, 5..8, 2..8, 1.0..4.0);
+
+        let num_colors = rng.random_range(num_colors_range);
+        let colors = generate_random_style_colors(rng, num_colors);
+        let size = rng.random_range(size_range) * 10;
+        let length = rng.random_range(length_range);
+
+        let mut wp = Self::new(resolution, size);
+        wp.paint(|i, j| create_colormap(&mut rng.clone(), length * i, length * j, n1, n2, &colors));
+        wp
     }
 }
 

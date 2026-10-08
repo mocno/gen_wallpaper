@@ -2,12 +2,10 @@ mod generator;
 mod palette_generator;
 mod types;
 
-use std::process::ExitCode;
-
+use crate::types::{RandomDotsWallpaper, Resolution, Save, TilesWallpaper, XYZWallpaper};
 use clap::Parser;
 use rand::{rngs::SmallRng, Rng, RngExt, SeedableRng};
-
-use crate::types::{Resolution, Save};
+use std::process::ExitCode;
 
 /// Gerador simples de wallpapers aleatórios e bonitos.
 /// A ideia desse projeto é gerar de forma simples e rápida planos de fundos, mas sem perder a beleza e o estilo que seu plano de fundo precisa :P
@@ -92,13 +90,12 @@ fn main() -> ExitCode {
             resolution,
             seed,
         } => {
-            let resolution = resolution.size();
             let seed = seed.unwrap_or_else(generate_seed);
             let mut rng = SmallRng::seed_from_u64(seed);
 
             println!("{seed}");
 
-            let wp = generator::dots_generator(&mut rng, resolution);
+            let wp = RandomDotsWallpaper::generator(&mut rng, resolution);
             wp.save(filepath)
         }
         Commands::Xyz {
@@ -106,13 +103,12 @@ fn main() -> ExitCode {
             resolution,
             seed,
         } => {
-            let resolution = resolution.size();
             let seed = seed.unwrap_or_else(generate_seed);
             let mut rng = SmallRng::seed_from_u64(seed);
 
             println!("{seed}");
 
-            let wp = generator::xyz_generator(&mut rng, resolution);
+            let wp = XYZWallpaper::generator(&mut rng, resolution);
             wp.save(filepath)
         }
         Commands::Tiles {
@@ -120,13 +116,12 @@ fn main() -> ExitCode {
             resolution,
             seed,
         } => {
-            let resolution = resolution.size();
             let seed = seed.unwrap_or_else(generate_seed);
             let mut rng = SmallRng::seed_from_u64(seed);
 
             println!("{seed}");
 
-            let wp = generator::tiles_generator(&mut rng, resolution);
+            let wp = TilesWallpaper::generator(&mut rng, resolution);
             wp.save(filepath)
         }
         Commands::Random {
@@ -134,7 +129,6 @@ fn main() -> ExitCode {
             resolution,
             seed,
         } => {
-            let resolution = resolution.size();
             let seed = seed.unwrap_or_else(generate_seed);
             let mut rng = SmallRng::seed_from_u64(seed);
 
@@ -142,15 +136,15 @@ fn main() -> ExitCode {
 
             match rng.random_range(..=2u8) {
                 0 => {
-                    let wp = generator::dots_generator(&mut rng, resolution);
+                    let wp = RandomDotsWallpaper::generator(&mut rng, resolution);
                     wp.save(filepath)
                 }
                 1 => {
-                    let wp = generator::xyz_generator(&mut rng, resolution);
+                    let wp = XYZWallpaper::generator(&mut rng, resolution);
                     wp.save(filepath)
                 }
                 2 => {
-                    let wp = generator::tiles_generator(&mut rng, resolution);
+                    let wp = TilesWallpaper::generator(&mut rng, resolution);
                     wp.save(filepath)
                 }
                 _ => unreachable!(),

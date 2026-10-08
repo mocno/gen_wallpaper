@@ -2,7 +2,7 @@ use image::Rgb;
 use palette::{FromColor, Hsl, Srgb};
 use rand::{Rng, RngExt};
 
-pub fn generate_monocromatic_colors<R>(rng: &mut R, num_colors: u32) -> Vec<Rgb<u8>>
+fn generate_monocromatic_colors<R>(rng: &mut R, num_colors: u32) -> Vec<Rgb<u8>>
 where
     R: Rng + Sized + Clone,
 {
@@ -14,7 +14,7 @@ where
         .collect()
 }
 
-pub fn generate_analogous_colors<R>(rng: &mut R, num_colors: u32) -> Vec<Rgb<u8>>
+fn generate_analogous_colors<R>(rng: &mut R, num_colors: u32) -> Vec<Rgb<u8>>
 where
     R: Rng + Sized + Clone,
 {
@@ -30,7 +30,7 @@ where
         .collect()
 }
 
-pub fn generate_complementary_colors<R>(rng: &mut R, num_colors: u32) -> Vec<Rgb<u8>>
+fn generate_complementary_colors<R>(rng: &mut R, num_colors: u32) -> Vec<Rgb<u8>>
 where
     R: Rng + Sized + Clone,
 {
